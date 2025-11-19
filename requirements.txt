@@ -1,0 +1,7 @@
+faiss-cpu==1.8.0.post1
+sentence-transformers==3.0.1
+openai==1.52.2
+python-dotenv==1.0.1
+streamlit==1.39.0
+tqdm==4.66.5
+numpy==1.26.4

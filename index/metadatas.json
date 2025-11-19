@@ -1,0 +1,32 @@
+[
+  {
+    "doc_id": "9e816348-2c98-4276-9156-a8d46f94d4f3",
+    "source": "./data\\bangkok.txt",
+    "chunk_id": 0
+  },
+  {
+    "doc_id": "cbab2dce-4f4b-4143-a881-a2d678373267",
+    "source": "./data\\london.txt",
+    "chunk_id": 0
+  },
+  {
+    "doc_id": "b60b6933-5302-401d-9775-328b8d2e5c4e",
+    "source": "./data\\newyork.txt",
+    "chunk_id": 0
+  },
+  {
+    "doc_id": "4b557fc2-34f0-4c48-a08c-2d6e100fb155",
+    "source": "./data\\paris.txt",
+    "chunk_id": 0
+  },
+  {
+    "doc_id": "ed2915d9-1300-42f4-be21-38d74a89fc1f",
+    "source": "./data\\rome.txt",
+    "chunk_id": 0
+  },
+  {
+    "doc_id": "26e7da7a-72f0-4cfc-8b4e-dd6b6c711dbb",
+    "source": "./data\\tokyo.txt",
+    "chunk_id": 0
+  }
+]

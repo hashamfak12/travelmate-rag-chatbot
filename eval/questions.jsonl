@@ -1,0 +1,5 @@
+{"question": "Best way to reach central Paris from CDG?", "expected_keywords": ["RER B", "CDG", "Paris"]}
+{"question": "How do I get from Narita to Tokyo city center?", "expected_keywords": ["Narita", "Keisei", "JR Narita Express", "Skyliner"]}
+{"question": "Which London airport train reaches central fastest?", "expected_keywords": ["Heathrow", "Elizabeth Line", "Heathrow Express"]}
+{"question": "Train from FCO to Rome Termini?", "expected_keywords": ["Fiumicino", "Leonardo Express", "Termini"]}
+{"question": "How to pay for NYC subway?", "expected_keywords": ["OMNY", "contactless", "subway"]}
