@@ -1,61 +1,51 @@
-# TravelMate — RAG Chatbot for Travel Guides (Full Starter Kit)
+# TravelMate — RAG Chatbot for Travel Guides
 
-A **ready-to-run** Retrieval-Augmented Generation (RAG) project aligned with your proposal.
-It includes: FAISS retrieval, Streamlit UI, optional LLM generation, and a tiny **evaluation harness**.
-
+TravelMate is a Retrieval-Augmented Generation (RAG) project we built to help answer travel-related questions using real guide information. Instead of relying only on a language model, the system searches through travel text files (like city guides) and uses those snippets to generate grounded answers with citations.
 ![Architecture](assets/architecture.png)
 
 ## ✨ What's included
-- **RAG pipeline**: chunk → embed → FAISS index → retrieve → generate (with citations)
-- **Streamlit UI**: ask questions, view sources, adjust top-k
-- **Eval harness**: `evaluate.py` + `eval/questions.jsonl` for precision@k and latency
-- **Sample data**: Paris, Tokyo, London, Rome, Bangkok, New York (replace with Wikivoyage excerpts later)
-- **OpenAI (optional)**: set `OPENAI_API_KEY` to enable LLM answers
-
+- RAG pipeline: break text into chunks → embed them → build a FAISS index → search relevant passages → generate an answer with the retrieved context.
+- Streamlit web app: a simple UI where you can ask questions, browse retrieved passages, and adjust the top-k value.
+- Evaluation tools: basic scripts (evaluate.py + eval/questions.jsonl) to check precision@k and retrieval speed.
+- Sample data: short travel notes for cities like Paris, Tokyo, London, Rome, Bangkok, and New York (we’ll replace these with cleaned Wikivoyage data later).
 ---
 
 ## 🔧 Quick Start
 
-```bash
+```# Create a virtual environment
 python -m venv .venv
-# macOS/Linux
-source .venv/bin/activate
-# Windows PowerShell
-# .venv\Scripts\Activate.ps1
+.venv\Scripts\Activate.ps1
 
+# Install
 pip install -r requirements.txt
 
-# Build the FAISS index from /data
+## Build the FAISS index
 python ingest.py --data_dir ./data --index_dir ./index --chunk_size 500 --chunk_overlap 50
 
-# Try a CLI question
-python query_cli.py --index_dir ./index --question "How to get from CDG to central Paris?"
-
-# Run the Streamlit app
+## CLI question
+python query_cli.py --index_dir ./index --question "How do I get from CDG to central Paris?"
+## Run the Streamlit app
 streamlit run app_streamlit.py
+
 ```
 
 ### Optional: enable LLM answers
 ```bash
 cp .env.example .env
-# add your OPENAI_API_KEY
+# here OPENAI_API_KEY
 ```
-
 ---
 
 ## 🧪 Evaluation (precision@k + latency)
 
 Edit `eval/questions.jsonl` to add your own QA pairs. Then run:
-```bash
+``bash
 python evaluate.py --index_dir ./index --k 5
 ```
+- **Precision@k** — how often the correct passage appears in the top-k results
+- **Latency** — average retrieval time in milliseconds
 
-You'll get a small report with:
-- **Precision@k** — fraction of queries where at least one retrieved passage contains an expected **keyword** (simple heuristic)
-- **Latency** — average retrieval time (ms)
-
-> Note: This is a lightweight academic evaluation for check-ins. For the final project, expand to more queries and better metrics.
-
+> This evaluation is basic and mainly for quick testing. You can add more questions later if you want a more complete assessment.
 ---
 
 ## 🧱 Project Layout
