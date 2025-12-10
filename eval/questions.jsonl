@@ -1,5 +1,23 @@
 {"question": "Best way to reach central Paris from CDG?", "expected_keywords": ["RER B", "CDG", "Paris"]}
-{"question": "How do I get from Narita to Tokyo city center?", "expected_keywords": ["Narita", "Keisei", "JR Narita Express", "Skyliner"]}
+{"question": "How do I get from Narita to Tokyo city center?", "expected_keywords": ["Narita", "Keisei", "Skyliner", "Narita Express"]}
 {"question": "Which London airport train reaches central fastest?", "expected_keywords": ["Heathrow", "Elizabeth Line", "Heathrow Express"]}
 {"question": "Train from FCO to Rome Termini?", "expected_keywords": ["Fiumicino", "Leonardo Express", "Termini"]}
-{"question": "How to pay for NYC subway?", "expected_keywords": ["OMNY", "contactless", "subway"]}
+{"question": "How to pay for NYC subway?", "expected_keywords": ["OMNY", "MetroCard", "contactless"]}
+{"question": "Cheapest way from CDG to Paris center?", "expected_keywords": ["RER B", "CDG"]}
+{"question": "Is there a fast train from Narita to Ueno?", "expected_keywords": ["Skyliner", "Keisei", "Ueno"]}
+{"question": "Which line should I take from Heathrow to central London on a budget?", "expected_keywords": ["Piccadilly", "Tube"]}
+{"question": "What is the fixed taxi fare from FCO to central Rome?", "expected_keywords": ["fixed", "taxi", "Fiumicino"]}
+{"question": "How can I use contactless to ride the Tube in London?", "expected_keywords": ["contactless", "Oyster", "cap"]}
+{"question": "Which Tokyo neighborhood is best for nightlife?", "expected_keywords": ["Shinjuku", "Shibuya"]}
+{"question": "Where should I stay in Paris for cafés and boutiques?", "expected_keywords": ["Le Marais", "Saint-Germain"]}
+{"question": "Best area in Rome to experience local restaurants and cobblestone streets?", "expected_keywords": ["Trastevere", "Monti"]}
+{"question": "How do I reach the Grand Palace from central Bangkok?", "expected_keywords": ["Chao Phraya", "boat", "river"]}
+{"question": "What public transport connects Suvarnabhumi airport to downtown Bangkok?", "expected_keywords": ["Airport Rail Link", "ARL"]}
+{"question": "How do I get from JFK to Manhattan using public transport?", "expected_keywords": ["AirTrain", "subway", "Jamaica", "LIRR"]}
+{"question": "Which card should I use on Tokyo trains and buses?", "expected_keywords": ["Suica", "Pasmo", "IC card"]}
+{"question": "What are some popular neighborhoods to visit in New York?", "expected_keywords": ["Midtown", "Brooklyn", "SoHo", "Greenwich Village"]}
+{"question": "Is tap water in Rome safe to drink?", "expected_keywords": ["nasoni", "tap water", "drinkable"]}
+{"question": "What is the best way to move around Bangkok while avoiding traffic jams?", "expected_keywords": ["BTS", "MRT", "Skytrain"]}
+{"question": "Which area in London is good for markets and alternative culture?", "expected_keywords": ["Camden"]}
+{"question": "Where can I get the best city view in Tokyo?", "expected_keywords": ["Skytree", "Shibuya Sky"]}
+{"question": "How can I travel between Paris attractions without spending too much on transport?", "expected_keywords": ["Metro", "Navigo", "pass"]}
