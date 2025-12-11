@@ -30,6 +30,35 @@ st.markdown(
     [data-testid="stSidebar"] .block-container {
         padding-top: 1.5rem;
     }
+    /* Fix text visibility for Streamlit components */
+    [data-testid="stSidebar"] p, 
+    [data-testid="stSidebar"] div,
+    [data-testid="stSidebar"] span,
+    [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3,
+    [data-testid="stSidebar"] h4 {
+        color: #0f172a !important;
+    }
+    /* Fix success/info/error messages */
+    .stSuccess, .stInfo, .stWarning, .stError {
+        color: #0f172a !important;
+    }
+    .stSuccess p, .stInfo p, .stWarning p, .stError p {
+        color: #0f172a !important;
+    }
+    /* Fix chat messages text color */
+    [data-testid="stChatMessage"] {
+        color: #0f172a !important;
+    }
+    [data-testid="stChatMessage"] p,
+    [data-testid="stChatMessage"] div {
+        color: #0f172a !important;
+    }
+    /* Fix chat input text - should be white on dark background */
+    [data-testid="stChatInput"] textarea {
+        color: #ffffff !important;
+    }
     .tm-topbar {
         display: flex;
         justify-content: space-between;
@@ -149,6 +178,62 @@ st.markdown(
     }
     [data-testid="stForm"] button:hover {
         background: linear-gradient(90deg, #0f172a, #111827);
+    }
+    /* NUCLEAR OPTION: Force white text on ALL buttons in sidebar with dark backgrounds */
+    [data-testid="stSidebar"] button {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+    }
+    [data-testid="stSidebar"] button span,
+    [data-testid="stSidebar"] button div,
+    [data-testid="stSidebar"] button p,
+    [data-testid="stSidebar"] button::before,
+    [data-testid="stSidebar"] button::after {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+    }
+    /* Target the specific emotion-cache classes from DevTools */
+    .st-emotion-cache-g9em7g,
+    .st-emotion-cache-g9em7g *,
+    .ef3psqc16,
+    .ef3psqc16 *,
+    button.st-emotion-cache-g9em7g,
+    button.st-emotion-cache-g9em7g *,
+    button.ef3psqc16,
+    button.ef3psqc16 * {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+    }
+    /* Target buttons with the dark background color we saw in DevTools */
+    button[style*="#2B2C36"],
+    button[style*="2B2C36"],
+    button[style*="rgb(43, 44, 54)"] {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+    }
+    /* More aggressive - target any button in sidebar */
+    [data-testid="stSidebar"] .stButton button,
+    [data-testid="stSidebar"] .element-container button,
+    [data-testid="stSidebar"] [class*="button"] {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+    }
+    /* Even more aggressive - all text inside sidebar buttons */
+    [data-testid="stSidebar"] button * {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+    }
+    /* Fix subheader (Chat) text color */
+    h3, h2 {
+        color: #0f172a !important;
+    }
+    /* Fix chat input placeholder and text */
+    [data-testid="stChatInput"] textarea::placeholder {
+        color: #ffffff !important;
+        opacity: 0.7;
+    }
+    [data-testid="stChatInput"] textarea {
+        color: #ffffff !important;
     }
     .tm-turn {
         margin-bottom: 1rem;
@@ -319,67 +404,123 @@ with cols[1]:
         unsafe_allow_html=True,
     )
 
-# --- Question input ------------------------------------------------------- #
-with st.container():
-    st.markdown('<div class="tm-question-card">', unsafe_allow_html=True)
-    with st.form("travelmate-question"):
-        st.markdown('<div class="tm-label">Your question</div>', unsafe_allow_html=True)
-        question = st.text_input(
-            "",
-            placeholder="e.g. Fastest way from CDG airport to Paris center?",
-            label_visibility="collapsed",
-        )
-        submitted = st.form_submit_button("Generate answer", use_container_width=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+# --- Chat Interface --------------------------------------------------------- #
+st.subheader("Chat")
 
-if submitted:
-    clean_question = question.strip()
-    if not clean_question:
-        st.warning("Please enter a question.")
-    elif not is_index_loaded():
-        st.warning("Load the index in the sidebar first.")
-    else:
-        embedder = load_embedder()
-        q_emb = embed_texts(embedder, [clean_question]).astype("float32")
-        faiss.normalize_L2(q_emb)
-        _, I = st.session_state["index"].search(q_emb, k)
-
-        retrieved = []
-        for rank, idx in enumerate(I[0]):
-            if idx == -1:
-                continue
-            meta = st.session_state["metadatas"][idx]
-            retrieved.append(
-                {
-                    "rank": rank + 1,
-                    "text": st.session_state["texts"][idx],
-                    "source": meta["source"],
-                    "chunk_id": meta["chunk_id"],
-                }
-            )
-
-        answer = generate_answer(clean_question, retrieved)
-        st.session_state["history"].append(
-            {"question": clean_question, "answer": answer, "citations": retrieved}
-        )
-
-# --- Conversation --------------------------------------------------------- #
-st.subheader("Conversation")
+# Display chat history
 if not st.session_state["history"]:
-    st.caption("Ask your first question to see the AI response and citations.")
-else:
-    for turn in reversed(st.session_state["history"][-5:]):
-        question_html = to_html(turn["question"])
-        answer_html = to_html(turn["answer"])
-        st.markdown(
-            f"""
-            <div class="tm-card tm-turn">
-                <div class="tm-label">Question</div>
-                <p class="tm-turn-question">{question_html}</p>
-                <div class="tm-label" style="margin-top:1rem;">Answer</div>
-                <p class="tm-turn-answer">{answer_html}</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        render_citations(turn["citations"])
+    with st.chat_message("assistant"):
+        st.write("Hello! I'm TravelMate, your travel assistant. Ask me anything about the cities in my knowledge base!")
+
+# Display all conversation history
+for turn in st.session_state["history"]:
+    # User message
+    with st.chat_message("user"):
+        st.write(turn["question"])
+    
+    # Assistant message
+    with st.chat_message("assistant"):
+        st.write(turn["answer"])
+        # Show citations in expander
+        if turn["citations"]:
+            with st.expander("View sources"):
+                render_citations(turn["citations"])
+
+# Chat input (always visible at bottom)
+if prompt := st.chat_input("Ask a travel question..."):
+    if not is_index_loaded():
+        st.warning("Please load the index in the sidebar first.")
+    else:
+        # Add user message to history immediately
+        st.session_state["history"].append({
+            "question": prompt,
+            "answer": "",
+            "citations": []
+        })
+        
+        # Display user message
+        with st.chat_message("user"):
+            st.write(prompt)
+        
+        # Process and display assistant response
+        with st.chat_message("assistant"):
+            with st.spinner("Thinking..."):
+                embedder = load_embedder()
+                
+                # Simple query embedding - no conversation context
+                q_emb = embed_texts(embedder, [prompt]).astype("float32")
+                faiss.normalize_L2(q_emb)
+                _, I = st.session_state["index"].search(q_emb, k)
+
+                # Extract city name from question for filtering
+                question_lower = prompt.lower()
+                
+                city_keywords = {
+                    'paris': 'paris',
+                    'cdg': 'paris',
+                    'charles de gaulle': 'paris',
+                    'orly': 'paris',
+                    'ory': 'paris',
+                    'rer b': 'paris',
+                    'tokyo': 'tokyo',
+                    'london': 'london',
+                    'rome': 'rome',
+                    'new york': 'newyork',
+                    'nyc': 'newyork',
+                    'bangkok': 'bangkok',
+                    'sydney': 'sydney',
+                    'dubai': 'dubai',
+                    'mumbai': 'mumbai',
+                    'são paulo': 'saopaulo',
+                    'sao paulo': 'saopaulo',
+                    'cape town': 'capetown',
+                    'berlin': 'berlin',
+                    'singapore': 'singapore',
+                    'mexico city': 'mexicocity',
+                }
+                
+                # Determine which city the question is about (check current question AND conversation history)
+                relevant_city = None
+                for keyword, city_file in city_keywords.items():
+                    if keyword in conversation_text:
+                        relevant_city = city_file
+                        break
+                
+                retrieved = []
+                for rank, idx in enumerate(I[0]):
+                    if idx == -1:
+                        continue
+                    meta = st.session_state["metadatas"][idx]
+                    source_file = meta["source"].lower()
+                    
+                    # Filter: if question mentions a specific city, prioritize chunks from that city
+                    if relevant_city and relevant_city not in source_file:
+                        # Skip chunks from other cities if we identified a specific city
+                        continue
+                    
+                    retrieved.append(
+                        {
+                            "rank": len(retrieved) + 1,
+                            "text": st.session_state["texts"][idx],
+                            "source": meta["source"],
+                            "chunk_id": meta["chunk_id"],
+                        }
+                    )
+                    # For follow-up questions, get more diverse chunks
+                    limit = k * 2 if history_for_context else k
+                    if len(retrieved) >= limit:
+                        break
+
+                # Generate answer without conversation history
+                answer = generate_answer(prompt, retrieved)
+                
+                # Update the last history entry with the answer
+                st.session_state["history"][-1]["answer"] = answer
+                st.session_state["history"][-1]["citations"] = retrieved
+                
+                st.write(answer)
+                
+                # Show citations in expander
+                if retrieved:
+                    with st.expander("View sources"):
+                        render_citations(retrieved)
