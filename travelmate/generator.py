@@ -7,15 +7,24 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def _build_prompt(question: str, retrieved: List[Dict]) -> str:
+def _build_prompt(question: str, retrieved: List[Dict], conversation_history: List[Dict] = None) -> str:
     snippets = "\n\n".join(f"[{r['rank']}] {r['text']}" for r in retrieved)
+    
+    # Add conversation context if available
+    context = ""
+    if conversation_history and len(conversation_history) > 0:
+        context_lines = []
+        for turn in conversation_history[-2:]:  # Last 2 turns
+            context_lines.append(f"Previous: Q: {turn['question']} A: {turn['answer'][:150]}")
+        context = "\n\nPrevious conversation:\n" + "\n".join(context_lines) + "\n\n"
+    
     return dedent(f"""
     You are TravelMate, a helpful travel assistant. Answer the user's question
     **using only** the information in the retrieved snippets below. If the answer
     is not present, say you don't have enough information. Cite sources inline
     with bracketed numbers like [1], [2]. Keep the answer concise.
-
-    Retrieved snippets:
+    
+    {context}Retrieved snippets:
     {snippets}
 
     Question: {question}
@@ -23,7 +32,7 @@ def _build_prompt(question: str, retrieved: List[Dict]) -> str:
     """).strip()
 
 
-def _call_openai(prompt: str) -> str | None:
+def _call_openai(prompt: str, conversation_history: List[Dict] = None) -> str | None:
     """Return model output, or None if no key is set."""
     api_key = os.getenv("OPENAI_API_KEY", "").strip()
     if not api_key:
@@ -34,12 +43,23 @@ def _call_openai(prompt: str) -> str | None:
     try:
         from openai import OpenAI
         client = OpenAI()
+        
+        messages = [
+            {"role": "system", "content": "You are TravelMate, a helpful travel assistant. Answer questions using only the provided information. Keep answers concise and cite sources."}
+        ]
+        
+        # Add conversation history if available
+        if conversation_history:
+            for turn in conversation_history[-3:]:  # Last 3 turns
+                messages.append({"role": "user", "content": turn["question"]})
+                messages.append({"role": "assistant", "content": turn["answer"][:300]})
+        
+        # Add current prompt
+        messages.append({"role": "user", "content": prompt})
+        
         resp = client.chat.completions.create(
             model=model,
-            messages=[
-                {"role": "system", "content": "You are TravelMate, a helpful travel assistant. Answer questions using only the provided information. Keep answers concise and cite sources."},
-                {"role": "user", "content": prompt},
-            ],
+            messages=messages,
             temperature=0.2,
             max_tokens=400,
         )
@@ -74,9 +94,9 @@ def _extract_relevant_text(question: str, chunk_text: str, max_sentences: int = 
     # Fallback: return first few sentences
     return '. '.join(sentences[:max_sentences]) + '.'
 
-def generate_answer(question: str, retrieved: List[Dict]) -> str:
-    prompt = _build_prompt(question, retrieved)
-    llm_answer = _call_openai(prompt)
+def generate_answer(question: str, retrieved: List[Dict], conversation_history: List[Dict] = None) -> str:
+    prompt = _build_prompt(question, retrieved, conversation_history)
+    llm_answer = _call_openai(prompt, conversation_history)
     if llm_answer is None:
         # Fallback when no API key is present: synthesize answer from most relevant chunks
         if not retrieved:

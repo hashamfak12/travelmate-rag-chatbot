@@ -32,8 +32,8 @@ st.markdown(
     }
     /* Fix text visibility for Streamlit components */
     [data-testid="stSidebar"] p, 
-    [data-testid="stSidebar"] div,
-    [data-testid="stSidebar"] span,
+    [data-testid="stSidebar"] div:not(button),
+    [data-testid="stSidebar"] span:not(button span),
     [data-testid="stSidebar"] h1,
     [data-testid="stSidebar"] h2,
     [data-testid="stSidebar"] h3,
@@ -58,6 +58,9 @@ st.markdown(
     /* Fix chat input text - should be white on dark background */
     [data-testid="stChatInput"] textarea {
         color: #ffffff !important;
+    }
+    [data-testid="stChatInput"] textarea::placeholder {
+        color: rgba(255, 255, 255, 0.7) !important;
     }
     .tm-topbar {
         display: flex;
@@ -179,49 +182,13 @@ st.markdown(
     [data-testid="stForm"] button:hover {
         background: linear-gradient(90deg, #0f172a, #111827);
     }
-    /* NUCLEAR OPTION: Force white text on ALL buttons in sidebar with dark backgrounds */
-    [data-testid="stSidebar"] button {
+    /* Fix button text color in sidebar - white text on dark buttons */
+    [data-testid="stSidebar"] button,
+    [data-testid="stSidebar"] .stButton > button {
         color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
     }
-    [data-testid="stSidebar"] button span,
-    [data-testid="stSidebar"] button div,
-    [data-testid="stSidebar"] button p,
-    [data-testid="stSidebar"] button::before,
-    [data-testid="stSidebar"] button::after {
-        color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
-    }
-    /* Target the specific emotion-cache classes from DevTools */
-    .st-emotion-cache-g9em7g,
-    .st-emotion-cache-g9em7g *,
-    .ef3psqc16,
-    .ef3psqc16 *,
-    button.st-emotion-cache-g9em7g,
-    button.st-emotion-cache-g9em7g *,
-    button.ef3psqc16,
-    button.ef3psqc16 * {
-        color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
-    }
-    /* Target buttons with the dark background color we saw in DevTools */
-    button[style*="#2B2C36"],
-    button[style*="2B2C36"],
-    button[style*="rgb(43, 44, 54)"] {
-        color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
-    }
-    /* More aggressive - target any button in sidebar */
-    [data-testid="stSidebar"] .stButton button,
-    [data-testid="stSidebar"] .element-container button,
-    [data-testid="stSidebar"] [class*="button"] {
-        color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
-    }
-    /* Even more aggressive - all text inside sidebar buttons */
     [data-testid="stSidebar"] button * {
         color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
     }
     /* Fix subheader (Chat) text color */
     h3, h2 {
@@ -447,13 +414,29 @@ if prompt := st.chat_input("Ask a travel question..."):
             with st.spinner("Thinking..."):
                 embedder = load_embedder()
                 
-                # Simple query embedding - no conversation context
-                q_emb = embed_texts(embedder, [prompt]).astype("float32")
+                # Get conversation history for context
+                history_for_context = st.session_state["history"][:-1] if len(st.session_state["history"]) > 1 else []
+                
+                # Build enhanced query with conversation context for follow-ups
+                enhanced_query = prompt
+                if history_for_context:
+                    last_turn = history_for_context[-1]
+                    # If question is short/ambiguous, add context
+                    if len(prompt.split()) < 5 or any(word in prompt.lower() for word in ["that", "it", "this", "how much", "what about"]):
+                        enhanced_query = f"{last_turn['question']} {prompt} {last_turn['answer'][:100]}"
+                
+                q_emb = embed_texts(embedder, [enhanced_query]).astype("float32")
                 faiss.normalize_L2(q_emb)
                 _, I = st.session_state["index"].search(q_emb, k)
 
                 # Extract city name from question for filtering
                 question_lower = prompt.lower()
+                
+                # Also check conversation history for city context
+                conversation_text = question_lower
+                if history_for_context:
+                    for turn in history_for_context[-2:]:
+                        conversation_text += " " + turn["question"].lower() + " " + turn["answer"].lower()[:100]
                 
                 city_keywords = {
                     'paris': 'paris',
@@ -479,7 +462,7 @@ if prompt := st.chat_input("Ask a travel question..."):
                     'mexico city': 'mexicocity',
                 }
                 
-                # Determine which city the question is about (check current question AND conversation history)
+                # Determine which city the question is about (check question and conversation)
                 relevant_city = None
                 for keyword, city_file in city_keywords.items():
                     if keyword in conversation_text:
@@ -506,13 +489,12 @@ if prompt := st.chat_input("Ask a travel question..."):
                             "chunk_id": meta["chunk_id"],
                         }
                     )
-                    # For follow-up questions, get more diverse chunks
-                    limit = k * 2 if history_for_context else k
-                    if len(retrieved) >= limit:
+                    # Limit to top k most relevant
+                    if len(retrieved) >= k:
                         break
 
-                # Generate answer without conversation history
-                answer = generate_answer(prompt, retrieved)
+                # Generate answer with conversation history
+                answer = generate_answer(prompt, retrieved, history_for_context)
                 
                 # Update the last history entry with the answer
                 st.session_state["history"][-1]["answer"] = answer
